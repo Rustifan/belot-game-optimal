@@ -1,8 +1,13 @@
 use super::deck::Card;
-
 const NUMBER_OF_PLAYERS: usize = 4;
 
-#[derive(Default, Debug)]
+#[derive(Clone, Debug, Hash)]
+pub enum Team {
+    A,
+    B,
+}
+
+#[derive(Default, Debug, Clone)]
 pub struct Hand {
     hand: Vec<Card>,
 }
@@ -16,11 +21,46 @@ impl Hand {
         self.hand
             .sort_by_key(|card| (card.suit.clone(), card.value.clone()));
     }
+
+    pub fn cards(&self) -> &Vec<Card> {
+        &self.hand
+    }
+
+    pub fn into_cards(self) -> Vec<Card> {
+        self.hand
+    }
 }
 
 #[derive(Default, Debug)]
 pub struct Player {
     hand: Hand,
+    index: usize,
+}
+
+impl Player {
+    pub fn recieve_card(&mut self, card: Card) {
+        self.hand.take_card(card);
+    }
+
+    pub fn sort_hand(&mut self) {
+        self.hand.sort();
+    }
+
+    pub fn get_hand(&self) -> &Hand {
+        &self.hand
+    }
+
+    pub fn get_team(&self) -> Team {
+        if self.index % 2 == 0 {
+            Team::A
+        } else {
+            Team::B
+        }
+    }
+
+    pub fn get_index(&self) -> usize {
+        self.index
+    }
 }
 
 #[derive(Debug, Default)]
@@ -33,6 +73,9 @@ impl Players {
     pub fn new() -> Self {
         let mut players = Players::default();
         players.set_turn(0);
+        for (index, player) in players.players.iter_mut().enumerate() {
+            player.index = index;
+        }
 
         players
     }
@@ -59,12 +102,20 @@ impl Players {
     }
 }
 
-impl Player {
-    pub fn recieve_card(&mut self, card: Card) {
-        self.hand.take_card(card);
-    }
+impl<'a> IntoIterator for &'a Players {
+    type Item = &'a Player;
+    type IntoIter = std::slice::Iter<'a, Player>;
 
-    pub fn sort_hand(&mut self) {
-        self.hand.sort();
+    fn into_iter(self) -> Self::IntoIter {
+        self.players.iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a mut Players {
+    type Item = &'a mut Player;
+    type IntoIter = std::slice::IterMut<'a, Player>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.players.iter_mut()
     }
 }
