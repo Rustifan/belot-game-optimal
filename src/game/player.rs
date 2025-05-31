@@ -1,5 +1,5 @@
 use super::deck::Card;
-const NUMBER_OF_PLAYERS: usize = 4;
+pub const NUMBER_OF_PLAYERS: usize = 4;
 
 #[derive(Clone, Debug, Hash)]
 pub enum Team {

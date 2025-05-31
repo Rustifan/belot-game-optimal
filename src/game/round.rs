@@ -1,14 +1,19 @@
-use std::collections::HashMap;
 use super::{
     deck::{CardSuit, Deck},
-    player::{Hand, Player, Players, Team},
+    player::{Hand, NUMBER_OF_PLAYERS, Player, Players, Team},
     trick::Trick,
 };
+use std::collections::HashMap;
 
 #[derive(Debug, Default)]
-struct Trump {
-    player_index: usize,
-    trump_suit: CardSuit,
+pub struct Trump {
+    pub player_index: usize,
+    pub trump_suit: CardSuit,
+}
+
+pub trait RoundPlayer: std::fmt::Debug {
+    fn try_call_trump(&self, round_state: &Round, player_index: usize) -> Option<CardSuit>;
+    fn must_call_trump(&self, round_state: &Round, player_index: usize) -> CardSuit;
 }
 
 #[derive(Debug)]
@@ -18,19 +23,12 @@ pub struct Round {
     player_turn_index: usize,
     current_trick: Trick,
     trick_history: Vec<Trick>,
-    trump: Trump
-}
-
-impl std::ops::Deref for Round {
-    type Target = HashMap<Team, Hand>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.pots
-    }
+    trump: Trump,
+    round_player: Box<dyn RoundPlayer>,
 }
 
 impl Round {
-    pub fn new() -> Self {
+    pub fn new(round_player: Box<dyn RoundPlayer>, first_player_index: usize) -> Self {
         let player_turn_index = 0;
         let mut deck = Deck::new();
         let mut players = Players::new();
@@ -40,10 +38,11 @@ impl Round {
         Round {
             players,
             pots: HashMap::new(),
-            player_turn_index,
+            player_turn_index: first_player_index,
             current_trick: Trick::new(player_turn_index),
             trick_history: vec![],
-            trump: Trump::default() 
+            trump: Trump::default(),
+            round_player,
         }
     }
 
@@ -56,10 +55,28 @@ impl Round {
         result
     }
 
-    pub fn set_trump(&mut self, player: &Player, suit: CardSuit) {
-        self.trump = Trump {
-            trump_suit: suit,
-            player_index: player.get_index()
+    fn get_trump(&mut self) -> Trump {
+        let last_player_index = NUMBER_OF_PLAYERS - 1;
+        for i in 0..last_player_index {
+            let player_index = (i + self.player_turn_index) % NUMBER_OF_PLAYERS;
+            if let Some(suit) = self.round_player.try_call_trump(self, player_index) {
+                return Trump {
+                    trump_suit: suit,
+                    player_index,
+                };
+            }
         }
+
+        let last_player = (last_player_index + self.player_turn_index) % NUMBER_OF_PLAYERS;
+        let suit = self.round_player.must_call_trump(self, last_player);
+
+        Trump {
+            trump_suit: suit,
+            player_index: last_player
+        }
+    }
+
+    pub fn play_round(&mut self) {
+        self.trump = self.get_trump();
     }
 }
