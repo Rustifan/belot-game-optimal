@@ -11,7 +11,7 @@ use super::{
 #[derive(Debug)]
 pub struct Trick {
     player_index_turn: usize,
-    cards_on_table: Vec<Card>,
+    pub cards_on_table: Vec<Card>,
 }
 
 impl Trick {
@@ -135,67 +135,5 @@ impl Trick {
             .into_iter()
             .filter(|card| better_than_trump(card, &best_trump))
             .collect()
-    }
-}
-
-#[cfg(test)]
-mod trick_tests {
-    use std::collections::HashSet;
-
-    use crate::game::player::{Hand, Player, Players};
-    use crate::game::{deck::Card, trick::Trick};
-    use crate::game::{deck::CardSuit, deck::CardValue};
-
-    #[test]
-    fn test_get_playeble_cards_empty_table() {
-        let mut trick = Trick::new(3);
-        trick.cards_on_table = vec![
-            Card {
-                value: CardValue::IX,
-                suit: CardSuit::Acorn,
-            },
-            Card {
-                value: CardValue::X,
-                suit: CardSuit::Acorn,
-            },
-            Card {
-                value: CardValue::VIII,
-                suit: CardSuit::Acorn,
-            },
-        ];
-        let trump_color = CardSuit::Herz;
-        let mut players = Players::default();
-        let test_cards = vec![
-            Card {
-                value: CardValue::IX,
-                suit: CardSuit::Leaf,
-            },
-            Card {
-                value: CardValue::Kec,
-                suit: CardSuit::Acorn,
-            },
-            Card {
-                value: CardValue::VIII,
-                suit: CardSuit::Acorn,
-            },
-            Card {
-                value: CardValue::X,
-                suit: CardSuit::Herz,
-            },
-        ];
-        players.players[3] = Player {
-            name: "test".to_string(),
-            index: 3,
-            hand: Hand { hand: test_cards },
-        };
-
-        let result = trick.get_playeble_cards(&players, &trump_color);
-        let expected_vec = vec![Card {
-            value: CardValue::Kec,
-            suit: CardSuit::Acorn,
-        }];
-        let expected_hash = expected_vec.into_iter().collect::<HashSet<Card>>();
-
-        assert_eq!(result, expected_hash);
     }
 }

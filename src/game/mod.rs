@@ -1,3 +1,4 @@
+pub mod test_trick;
 pub mod deck;
 pub mod player;
 pub mod round;
