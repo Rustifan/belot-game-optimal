@@ -3,7 +3,7 @@ use rand::random_range;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumCount, EnumIter};
 
-#[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum CardValue {
     VII,
     VIII,
@@ -15,7 +15,7 @@ pub enum CardValue {
     Kec,
 }
 
-#[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Default)]
+#[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Default, Hash)]
 pub enum CardSuit {
     #[default]
     Leaf,
@@ -24,7 +24,7 @@ pub enum CardSuit {
     Acorn,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Card {
     pub value: CardValue,
     pub suit: CardSuit,

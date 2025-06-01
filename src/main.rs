@@ -1,10 +1,13 @@
+mod clients;
 mod game;
-use game::{round::Round, test_round_player::TestRoundPlayer};
+mod utils;
+use game::round::Round;
+use clients::random_round_player::RandomRoundPlayer;
 
 fn main() {
-    let round_player = Box::from(TestRoundPlayer);
+    let round_player = Box::from(RandomRoundPlayer);
     let mut round = Round::new(round_player, 0);
     round.play_round();
-    
+
     println!("{round:#?}");
 }

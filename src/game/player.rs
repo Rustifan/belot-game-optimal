@@ -29,10 +29,12 @@ impl Hand {
     pub fn into_cards(self) -> Vec<Card> {
         self.hand
     }
+
 }
 
 #[derive(Default, Debug)]
 pub struct Player {
+    name: String,
     hand: Hand,
     index: usize,
 }
@@ -99,6 +101,10 @@ impl Players {
         for player in self.players.as_mut() {
             player.sort_hand();
         }
+    }
+
+    pub fn get(&self, index: usize) -> Option<&Player> {
+       self.players.get(index)
     }
 }
 
