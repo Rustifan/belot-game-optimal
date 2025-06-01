@@ -9,7 +9,7 @@ pub enum Team {
 
 #[derive(Default, Debug, Clone)]
 pub struct Hand {
-    hand: Vec<Card>,
+    pub hand: Vec<Card>,
 }
 
 impl Hand {
@@ -34,12 +34,18 @@ impl Hand {
 
 #[derive(Default, Debug)]
 pub struct Player {
-    name: String,
-    hand: Hand,
-    index: usize,
+    pub name: String,
+    pub hand: Hand,
+    pub index: usize,
 }
 
 impl Player {
+    pub fn recieve_cards(&mut self, cards: Vec<Card>){
+        self.hand = Hand {
+            hand: cards
+        }
+    }
+
     pub fn recieve_card(&mut self, card: Card) {
         self.hand.take_card(card);
     }
