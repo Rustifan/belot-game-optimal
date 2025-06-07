@@ -25,4 +25,15 @@ impl RoundPlayer for RandomRoundPlayer {
     ) -> CardSuit {
         get_random_suit()
     }
+
+    fn play_card(
+        &self,
+        _round_state: &Round,
+        _player_index: usize,
+        available_cards: Vec<crate::game::deck::Card>,
+    ) -> crate::game::deck::Card {
+        available_cards[0].clone()
+    }
+
+
 }

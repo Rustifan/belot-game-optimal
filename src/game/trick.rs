@@ -8,7 +8,7 @@ use super::{
     points::{get_best_normal, get_best_trump},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Trick {
     player_index_turn: usize,
     pub cards_on_table: Vec<Card>,
@@ -64,6 +64,7 @@ impl Trick {
     pub fn play_card(&mut self, card: Card) {
         self.cards_on_table.push(card);
         self.player_index_turn += 1;
+        self.player_index_turn %= NUMBER_OF_PLAYERS;
     }
 
     pub fn get_player_index_turn(&self) -> usize {
@@ -74,7 +75,7 @@ impl Trick {
         self.cards_on_table
     }
 
-    pub fn get_playeble_cards(&self, players: &Players, trump_color: &CardSuit) -> HashSet<Card> {
+    pub fn get_playeble_cards(&self, players: &Players, trump_color: &CardSuit) -> Vec<Card> {
         let number_of_cards_on_table = self.cards_on_table.len();
         let player_cards = players
             .get(self.get_player_index_turn())
@@ -83,11 +84,10 @@ impl Trick {
             .cards();
         let cloned_cards = player_cards.clone();
         if number_of_cards_on_table == 0 {
-            return cloned_cards.into_iter().collect();
+            return cloned_cards;
         }
-        let filterd_cards = self.filter_by_played_first_card(cloned_cards, trump_color);
 
-        filterd_cards.into_iter().collect()
+        self.filter_by_played_first_card(cloned_cards, trump_color)
     }
 
     fn filter_by_played_first_card(&self, cards: Vec<Card>, trump_color: &CardSuit) -> Vec<Card> {

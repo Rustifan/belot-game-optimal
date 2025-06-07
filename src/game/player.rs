@@ -1,7 +1,7 @@
 use super::deck::Card;
 pub const NUMBER_OF_PLAYERS: usize = 4;
 
-#[derive(Clone, Debug, Hash)]
+#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq)]
 pub enum Team {
     A,
     B,
@@ -13,6 +13,10 @@ pub struct Hand {
 }
 
 impl Hand {
+    pub fn new(cards: Vec<Card>)->Self {
+        Self {hand: cards}
+    }
+
     pub fn take_card(&mut self, card: Card) {
         self.hand.push(card);
     }
@@ -34,9 +38,15 @@ impl Hand {
         self.cards().len() == 0
     }
 
+    pub fn remove_card(&mut self, card: &Card) -> Option<Card> {
+        let card_position = self.hand.iter().position(|hand_card| *hand_card == *card)?;
+        let removed_card = self.hand.remove(card_position);
+
+        Some(removed_card)
+    }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Player {
     pub name: String,
     pub hand: Hand,
@@ -44,10 +54,8 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn recieve_cards(&mut self, cards: Vec<Card>){
-        self.hand = Hand {
-            hand: cards
-        }
+    pub fn recieve_cards(&mut self, cards: Vec<Card>) {
+        self.hand = Hand { hand: cards }
     }
 
     pub fn recieve_card(&mut self, card: Card) {
@@ -77,9 +85,13 @@ impl Player {
     pub fn has_cards(&self) -> bool {
         !self.hand.empty()
     }
+
+    pub fn remove_card(&mut self, card: &Card) -> Option<Card> {
+        self.hand.remove_card(card)
+    }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Players {
     player_turn: usize,
     pub players: [Player; NUMBER_OF_PLAYERS],
@@ -118,11 +130,11 @@ impl Players {
     }
 
     pub fn get(&self, index: usize) -> Option<&Player> {
-       self.players.get(index)
+        self.players.get(index)
     }
 
     pub fn have_cards(&self) -> bool {
-        self.players.iter().any(|player|{player.has_cards()})
+        self.players.iter().any(|player| player.has_cards())
     }
 }
 
