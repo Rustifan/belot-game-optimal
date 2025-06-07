@@ -75,8 +75,17 @@ impl Round {
             player_index: last_player
         }
     }
+    
+    fn play_trick(&mut self) {
+        
+    }
 
     pub fn play_round(&mut self) {
         self.trump = self.get_trump();
+        // while self.players.have_cards() {
+        //     self.current_trick.play_trick()
+        //
+        // }
+        todo!();
     }
 }

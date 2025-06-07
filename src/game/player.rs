@@ -30,6 +30,10 @@ impl Hand {
         self.hand
     }
 
+    pub fn empty(&self) -> bool {
+        self.cards().len() == 0
+    }
+
 }
 
 #[derive(Default, Debug)]
@@ -68,6 +72,10 @@ impl Player {
 
     pub fn get_index(&self) -> usize {
         self.index
+    }
+
+    pub fn has_cards(&self) -> bool {
+        !self.hand.empty()
     }
 }
 
@@ -111,6 +119,10 @@ impl Players {
 
     pub fn get(&self, index: usize) -> Option<&Player> {
        self.players.get(index)
+    }
+
+    pub fn have_cards(&self) -> bool {
+        self.players.iter().any(|player|{player.has_cards()})
     }
 }
 

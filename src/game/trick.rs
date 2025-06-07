@@ -4,7 +4,7 @@ use crate::game::points::{better_than_normal, better_than_trump};
 
 use super::{
     deck::{Card, CardSuit},
-    player::Players,
+    player::{NUMBER_OF_PLAYERS, Players},
     points::{get_best_normal, get_best_trump},
 };
 
@@ -22,8 +22,43 @@ impl Trick {
         }
     }
 
+    pub fn is_done(&self) -> bool {
+        self.cards_on_table.len() >= NUMBER_OF_PLAYERS
+    }
+
     pub fn cards(&self) -> &Vec<Card> {
         &self.cards_on_table
+    }
+
+    fn trick_winner_by_color(
+        &self,
+        color: &CardSuit,
+        better: fn(a: &Card, b: &Card) -> bool,
+    ) -> Option<usize> {
+        let best_card_index_on_table = self
+            .cards_on_table
+            .iter()
+            .enumerate()
+            .filter(|(_, card)| card.suit == *color)
+            .reduce(|acc, curr| if better(&acc.1, &curr.1) { acc } else { curr })?
+            .0;
+        let player_index = (best_card_index_on_table + self.player_index_turn) % NUMBER_OF_PLAYERS;
+
+        return Some(player_index);
+    }
+
+    pub fn get_trick_winner(&self, trump: &CardSuit) -> Option<usize> {
+        if !self.is_done() {
+            return None;
+        }
+
+        let has_trump = self.cards_on_table.iter().any(|card| card.suit == *trump);
+        if has_trump {
+            return self.trick_winner_by_color(trump, better_than_trump);
+        }
+        let first_card_color = &self.cards_on_table.get(0)?.suit;
+
+        return self.trick_winner_by_color(first_card_color, better_than_normal);
     }
 
     pub fn play_card(&mut self, card: Card) {

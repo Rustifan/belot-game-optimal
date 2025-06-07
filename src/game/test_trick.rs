@@ -393,4 +393,137 @@ mod test_trick {
             );
         }
     }
+
+    struct TrickWinnerTest {
+        table: Vec<Card>,
+        start_index: usize,
+        trump: CardSuit,
+        expected: Option<usize>,
+    }
+
+    #[test]
+    fn test_get_trick_winner() {
+        let test_cases = vec![
+            TrickWinnerTest {
+                table: vec![
+                    Card {
+                        value: CardValue::X,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::VII,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Jack,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Acorn,
+                    },
+                ],
+                start_index: 1,
+                trump: CardSuit::Herz,
+                expected: Some(1),
+            },
+            TrickWinnerTest {
+                table: vec![
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::IX,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Jack,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Acorn,
+                    },
+                ],
+                start_index: 2,
+                trump: CardSuit::Herz,
+                expected: Some(2),
+            },
+            TrickWinnerTest {
+                table: vec![
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Herz,
+                    },
+                    Card {
+                        value: CardValue::Jack,
+                        suit: CardSuit::Herz,
+                    },
+                    Card {
+                        value: CardValue::IX,
+                        suit: CardSuit::Pumpkin,
+                    },
+                ],
+                start_index: 3,
+                trump: CardSuit::Herz,
+                expected: Some(1),
+            },
+            TrickWinnerTest {
+                table: vec![
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::IX,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Jack,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Acorn,
+                    },
+                ],
+                start_index: 2,
+                trump: CardSuit::Herz,
+                expected: Some(2),
+            },
+            TrickWinnerTest {
+                table: vec![
+                    Card {
+                        value: CardValue::Kec,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::IX,
+                        suit: CardSuit::Pumpkin,
+                    },
+                    Card {
+                        value: CardValue::Jack,
+                        suit: CardSuit::Pumpkin,
+                    },
+                ],
+                start_index: 2,
+                trump: CardSuit::Herz,
+                expected: None,
+            },
+        ];
+
+        for test_case in test_cases {
+            let mut trick = Trick::new(test_case.start_index);
+            for card in test_case.table {
+                trick.play_card(card);
+            }
+            let result = trick.get_trick_winner(&test_case.trump);
+            assert_eq!(result, test_case.expected)
+        }
+    }
 }
