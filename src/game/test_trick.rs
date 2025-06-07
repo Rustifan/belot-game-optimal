@@ -23,9 +23,8 @@ mod test_trick {
             },
         };
         let result = trick.get_playeble_cards(&players, &trump_color);
-        let expected_hash = expacted_result.into_iter().collect::<HashSet<Card>>();
 
-        assert_eq!(result, expected_hash);
+        assert_eq!(result, expacted_result);
     }
     struct GetPlayebleCardsTest {
         cards_on_table: Vec<Card>,

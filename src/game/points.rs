@@ -1,6 +1,6 @@
 use super::deck::{Card, CardSuit, CardValue};
 
-pub fn get_normal_points(card_value: &CardValue) -> u32 {
+pub fn get_normal_points(card_value: &CardValue) -> usize {
     match card_value {
         CardValue::VII | CardValue::VIII | CardValue::IX => 0,
         CardValue::X => 10,
@@ -11,7 +11,7 @@ pub fn get_normal_points(card_value: &CardValue) -> u32 {
     }
 }
 
-pub fn get_trump_points(card_value: &CardValue) -> u32 {
+pub fn get_trump_points(card_value: &CardValue) -> usize {
     match card_value {
         CardValue::VII | CardValue::VIII => 0,
         CardValue::X => 10,

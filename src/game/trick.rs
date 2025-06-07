@@ -5,7 +5,8 @@ use crate::game::points::{better_than_normal, better_than_trump};
 use super::{
     deck::{Card, CardSuit},
     player::{NUMBER_OF_PLAYERS, Players},
-    points::{get_best_normal, get_best_trump},
+    points::{get_best_normal, get_best_trump, get_normal_points, get_trump_points},
+    round::Trump,
 };
 
 #[derive(Debug, Clone)]
@@ -170,5 +171,15 @@ impl Trick {
             .into_iter()
             .filter(|card| better_than_trump(card, &best_trump))
             .collect()
+    }
+
+    pub fn get_points(&self, trump: &Trump) -> usize {
+        self.cards_on_table.iter().fold(0, |acc, curr| {
+            if curr.suit == trump.trump_suit {
+                acc + get_trump_points(&curr.value)
+            } else {
+                acc + get_normal_points(&curr.value)
+            }
+        })
     }
 }

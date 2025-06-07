@@ -23,12 +23,40 @@ pub trait RoundPlayer {
 }
 
 #[derive(Debug, Clone)]
+pub struct TrickHistoryItem {
+    trick: Trick,
+    trump: Trump,
+    player_index_winner: usize,
+    team_winner: Team,
+    points: usize,
+}
+
+impl TrickHistoryItem {
+    fn new(round_state: &Round, trick: Trick) -> Self {
+        let player_index_winner = trick
+            .get_trick_winner(&round_state.trump.trump_suit)
+            .expect("To trick is done we always have a trick winner");
+        let player_winner = &round_state.players.players[player_index_winner];
+        let team_winner = player_winner.get_team();
+        let trump = round_state.trump.clone();
+        let points = trick.get_points(&round_state.trump);
+
+        Self {
+            trick,
+            trump,
+            player_index_winner,
+            team_winner,
+            points,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Round {
     players: Players,
-    pots: HashMap<Team, Vec<Hand>>,
     player_turn_index: usize,
     current_trick: Trick,
-    trick_history: Vec<Trick>,
+    trick_history: Vec<TrickHistoryItem>,
     trump: Trump,
 }
 
@@ -42,7 +70,6 @@ impl Round {
 
         Round {
             players,
-            pots: HashMap::new(),
             player_turn_index: first_player_index,
             current_trick: Trick::new(player_turn_index),
             trick_history: vec![],
@@ -87,38 +114,28 @@ impl Round {
                 .get_playeble_cards(&self.players, &self.trump.trump_suit);
             let player_index = self.current_trick.get_player_index_turn();
             let played_card = round_player.play_card(&self, player_index, avaliable_cards);
-            let pleyed_card = self.players.players[player_index]
+            let played_card = self.players.players[player_index]
                 .remove_card(&played_card)
                 .expect("Player to have card that needs to be removed");
             self.current_trick.play_card(played_card);
         }
 
-        let trick_winner = self
-            .current_trick
-            .get_trick_winner(&self.trump.trump_suit)
-            .expect("To trick is done we always have a trick winner");
-
-        let player_winner = &self.players.players[trick_winner];
-        let winning_team = player_winner.get_team();
-
-        self.trick_history.push(self.current_trick.clone());
-        let cards_to_pot = Hand::new(self.current_trick.cards().clone());
-        let winning_team_pot = self.pots.get_mut(&winning_team);
-        if let Some(pot) = winning_team_pot {
-            pot.push(cards_to_pot);
-        } else {
-            self.pots.insert(winning_team, vec![cards_to_pot]);
-        }
-        self.player_turn_index += 1;
+        self.trick_history
+            .push(TrickHistoryItem::new(&self, self.current_trick.clone()));
+        self.increment_player_index();
         self.current_trick = Trick::new(self.player_turn_index);
     }
 
     pub fn play_round(&mut self, round_player: Box<dyn RoundPlayer>) {
         self.trump = self.get_trump(&round_player);
-        self.play_trick(&round_player);
-        // while self.players.have_cards() {
-        //     self.current_trick.play_trick()
-        //
-        // }
+        while self.players.have_cards() {
+            self.play_trick(&round_player);
+
+        }
+    }
+
+    pub fn increment_player_index(&mut self){
+        self.player_turn_index +=1;
+        self.player_turn_index %= NUMBER_OF_PLAYERS;
     }
 }
