@@ -1,3 +1,5 @@
+use strum::EnumCount;
+
 use super::{
     deck::{Card, CardSuit, Deck},
     player::{Hand, NUMBER_OF_PLAYERS, Player, Players, Team},
@@ -51,6 +53,18 @@ impl TrickHistoryItem {
     }
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct TeamPoints {
+    points: [usize; Team::COUNT],
+}
+
+impl TeamPoints {
+    pub fn add_points(&mut self, team: Team, points: usize) {
+        let index = team.to_index();
+        self.points[index] += points;
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Round {
     players: Players,
@@ -58,6 +72,7 @@ pub struct Round {
     current_trick: Trick,
     trick_history: Vec<TrickHistoryItem>,
     trump: Trump,
+    points: TeamPoints,
 }
 
 impl Round {
@@ -74,6 +89,7 @@ impl Round {
             current_trick: Trick::new(player_turn_index),
             trick_history: vec![],
             trump: Trump::default(),
+            points: TeamPoints::default(),
         }
     }
 
@@ -107,7 +123,7 @@ impl Round {
         }
     }
 
-    fn play_trick(&mut self, round_player: &Box<dyn RoundPlayer>) {
+    fn play_trick(&mut self, round_player: &Box<dyn RoundPlayer>) -> TrickHistoryItem {
         while !self.current_trick.is_done() {
             let avaliable_cards = self
                 .current_trick
@@ -119,23 +135,33 @@ impl Round {
                 .expect("Player to have card that needs to be removed");
             self.current_trick.play_card(played_card);
         }
-
-        self.trick_history
-            .push(TrickHistoryItem::new(&self, self.current_trick.clone()));
+        let trick_history_item = TrickHistoryItem::new(&self, self.current_trick.clone());
+        self.trick_history.push(trick_history_item.clone());
         self.increment_player_index();
         self.current_trick = Trick::new(self.player_turn_index);
+
+        trick_history_item
     }
 
     pub fn play_round(&mut self, round_player: Box<dyn RoundPlayer>) {
         self.trump = self.get_trump(&round_player);
         while self.players.have_cards() {
-            self.play_trick(&round_player);
-
+            let played_trick = self.play_trick(&round_player);
+            self.points
+                .add_points(played_trick.team_winner, played_trick.points);
         }
+        let last_winner = &self
+            .trick_history
+            .last()
+            .expect("trick history should have all tricks so last trick must be present")
+            .team_winner;
+        const LAST_WINNER_ADDITIONAL_POINTS: usize = 10;
+
+        self.points.add_points(last_winner.clone(), LAST_WINNER_ADDITIONAL_POINTS);
     }
 
-    pub fn increment_player_index(&mut self){
-        self.player_turn_index +=1;
+    pub fn increment_player_index(&mut self) {
+        self.player_turn_index += 1;
         self.player_turn_index %= NUMBER_OF_PLAYERS;
     }
 }

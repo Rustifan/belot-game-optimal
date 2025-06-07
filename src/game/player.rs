@@ -1,10 +1,29 @@
+use strum_macros::EnumCount;
+
 use super::deck::Card;
 pub const NUMBER_OF_PLAYERS: usize = 4;
 
-#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq)]
+#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, EnumCount)]
 pub enum Team {
     A,
     B,
+}
+
+impl Team {
+    pub fn to_index(&self) -> usize {
+        match self {
+            Self::A => 0,
+            Self::B => 1,
+        }
+    }
+
+    pub fn from_index(index: usize) -> Self {
+        match index {
+            0 => Self::A,
+            1 => Self::B,
+            _ => panic!("Invalid index for converting to Team")
+        }
+    }
 }
 
 #[derive(Default, Debug, Clone)]
@@ -13,8 +32,8 @@ pub struct Hand {
 }
 
 impl Hand {
-    pub fn new(cards: Vec<Card>)->Self {
-        Self {hand: cards}
+    pub fn new(cards: Vec<Card>) -> Self {
+        Self { hand: cards }
     }
 
     pub fn take_card(&mut self, card: Card) {
