@@ -73,6 +73,7 @@ pub struct Round {
     trick_history: Vec<TrickHistoryItem>,
     trump: Trump,
     points: TeamPoints,
+    final_points: TeamPoints
 }
 
 impl Round {
@@ -90,6 +91,7 @@ impl Round {
             trick_history: vec![],
             trump: Trump::default(),
             points: TeamPoints::default(),
+            final_points: TeamPoints::default()
         }
     }
 
