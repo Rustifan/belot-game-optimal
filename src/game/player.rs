@@ -1,9 +1,9 @@
-use strum_macros::EnumCount;
+use strum_macros::{EnumCount, EnumIter};
 
 use super::deck::Card;
 pub const NUMBER_OF_PLAYERS: usize = 4;
 
-#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, EnumCount)]
+#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, EnumCount, EnumIter, Copy)]
 pub enum Team {
     A,
     B,
@@ -21,7 +21,14 @@ impl Team {
         match index {
             0 => Self::A,
             1 => Self::B,
-            _ => panic!("Invalid index for converting to Team")
+            _ => panic!("Invalid index for converting to Team"),
+        }
+    }
+
+    pub fn get_enemy_team(&self) -> Self {
+        match self {
+            Self::A => Self::B,
+            Self::B => Self::A,
         }
     }
 }

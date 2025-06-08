@@ -1,7 +1,8 @@
-use strum::EnumCount;
+use strum::{EnumCount, IntoEnumIterator};
 
 use super::{
     deck::{Card, CardSuit, Deck},
+    declaration::{Declaration, get_possible_declarations},
     player::{Hand, NUMBER_OF_PLAYERS, Player, Players, Team},
     trick::Trick,
 };
@@ -13,6 +14,14 @@ pub struct Trump {
     pub trump_suit: CardSuit,
 }
 
+impl Trump {
+    fn get_caller_team(&self) -> Team {
+        let team_index = self.player_index % Team::COUNT;
+
+        Team::from_index(team_index)
+    }
+}
+
 pub trait RoundPlayer {
     fn try_call_trump(&self, round_state: &Round, player_index: usize) -> Option<CardSuit>;
     fn must_call_trump(&self, round_state: &Round, player_index: usize) -> CardSuit;
@@ -22,6 +31,12 @@ pub trait RoundPlayer {
         player_index: usize,
         available_cards: Vec<Card>,
     ) -> Card;
+    fn call_declaration(
+        &self,
+        round_state: &Round,
+        player_index: usize,
+        declaration: &Declaration,
+    ) -> bool;
 }
 
 #[derive(Debug, Clone)]
@@ -63,6 +78,46 @@ impl TeamPoints {
         let index = team.to_index();
         self.points[index] += points;
     }
+
+    pub fn has_bigger_points(&self, team: Team) -> bool {
+        let team_index = team.to_index();
+        let other_team_index = (team_index + 1) % Team::COUNT;
+
+        self.points[team_index] > self.points[other_team_index]
+    }
+
+    pub fn all_points_to_team(&mut self, team: Team) {
+        let team_index = team.to_index();
+        let other_team_index = (team_index + 1) % Team::COUNT;
+        let points_sum = self.points.iter().fold(0, |acc, curr| acc + *curr);
+        self.points[team_index] = points_sum;
+        self.points[other_team_index] = 0;
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct TeamDeclarations {
+    declarations: [Vec<Declaration>; Team::COUNT],
+}
+
+impl TeamDeclarations {
+    pub fn add_declaration(&mut self, player: &Player, declaration: Declaration) {
+        let player_team = player.get_team();
+        let team_index = player_team.to_index();
+        self.declarations[team_index].push(declaration);
+    }
+
+    pub fn delete_declarations_for_team(&mut self, team: &Team) {
+        let team_index = team.to_index();
+        self.declarations[team_index].clear();
+    }
+
+    pub fn get_points_sum(&self, team: &Team) -> usize {
+        let index = team.to_index();
+        let declarations = &self.declarations[index];
+
+        declarations.iter().fold(0, |acc, curr| curr.points + acc)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -73,7 +128,8 @@ pub struct Round {
     trick_history: Vec<TrickHistoryItem>,
     trump: Trump,
     points: TeamPoints,
-    final_points: TeamPoints
+    final_points: TeamPoints,
+    team_declarations: TeamDeclarations,
 }
 
 impl Round {
@@ -91,7 +147,8 @@ impl Round {
             trick_history: vec![],
             trump: Trump::default(),
             points: TeamPoints::default(),
-            final_points: TeamPoints::default()
+            final_points: TeamPoints::default(),
+            team_declarations: TeamDeclarations::default(),
         }
     }
 
@@ -147,6 +204,8 @@ impl Round {
 
     pub fn play_round(&mut self, round_player: Box<dyn RoundPlayer>) {
         self.trump = self.get_trump(&round_player);
+        self.team_declarations = self.get_declarations(&round_player);
+
         while self.players.have_cards() {
             let played_trick = self.play_trick(&round_player);
             self.points
@@ -159,11 +218,73 @@ impl Round {
             .team_winner;
         const LAST_WINNER_ADDITIONAL_POINTS: usize = 10;
 
-        self.points.add_points(last_winner.clone(), LAST_WINNER_ADDITIONAL_POINTS);
+        self.points
+            .add_points(last_winner.clone(), LAST_WINNER_ADDITIONAL_POINTS);
+
+        self.final_points = self.points.clone();
+        for team in Team::iter() {
+            self.final_points
+                .add_points(team.clone(), self.team_declarations.get_points_sum(&team));
+        }
+
+        if self.has_trump_caller_failed() {
+            self.final_points
+                .all_points_to_team(self.trump.get_caller_team().get_enemy_team());
+        }
+    }
+
+    fn has_trump_caller_failed(&self) -> bool {
+        let player = self
+            .players
+            .get(self.trump.player_index)
+            .expect("for player to exist with trump_player_index");
+        let team = player.get_team();
+
+        !self.final_points.has_bigger_points(team)
     }
 
     pub fn increment_player_index(&mut self) {
         self.player_turn_index += 1;
         self.player_turn_index %= NUMBER_OF_PLAYERS;
+    }
+
+    fn get_declarations(&self, round_player: &Box<dyn RoundPlayer>) -> TeamDeclarations {
+        let mut best_declaration_result: Option<Declaration> = None;
+        let mut best_declaration_player: Option<Player> = None;
+        let mut team_declarations = TeamDeclarations::default();
+        for index in 0..NUMBER_OF_PLAYERS {
+            let player_index = (index + self.player_turn_index) % NUMBER_OF_PLAYERS;
+            let player = &self.players.players[player_index];
+            let possible_declarations = get_possible_declarations(&player.hand);
+            let approved_declarations = possible_declarations
+                .into_iter()
+                .filter(|declaration| {
+                    round_player.call_declaration(&self, player_index, declaration)
+                })
+                .collect::<Vec<_>>();
+
+            for declaration in approved_declarations.iter() {
+                if let Some(best_result) = &best_declaration_result {
+                    if declaration.is_better_than(&best_result) {
+                        best_declaration_result = Some(declaration.clone());
+                        best_declaration_player = Some(player.clone());
+                    }
+                } else {
+                    best_declaration_result = Some(declaration.clone());
+                    best_declaration_player = Some(player.clone());
+                }
+
+                team_declarations.add_declaration(player, declaration.clone());
+            }
+        }
+        if let Some(best_declaration_player) = best_declaration_player {
+            let best_player_team = best_declaration_player.get_team();
+            match best_player_team {
+                Team::A => team_declarations.delete_declarations_for_team(&Team::B),
+                Team::B => team_declarations.delete_declarations_for_team(&Team::A),
+            };
+        }
+
+        team_declarations
     }
 }

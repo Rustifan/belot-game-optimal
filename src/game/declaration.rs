@@ -7,10 +7,20 @@ use super::{
     player::Hand,
 };
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Declaration {
     pub points: usize,
     pub cards: Vec<Card>,
+}
+
+impl Declaration {
+    pub fn is_better_than(&self, other: &Declaration) -> bool {
+        if self.points == other.points {
+            return self.cards.len() < other.cards.len();
+        }
+
+        self.points > other.points
+    }
 }
 
 fn get_scale_index(card_value: &CardValue) -> usize {
@@ -138,11 +148,10 @@ fn get_scale_declarations(hand: &Hand) -> Vec<Declaration> {
 pub fn get_possible_declarations(hand: &Hand) -> Vec<Declaration> {
     let scale_declarations = get_scale_declarations(hand);
     let mut four_of_a_kind_declarations = get_four_of_a_kind_declarations(hand);
-    four_of_a_kind_declarations.sort_by_key(|declaration|declaration.points);
+    four_of_a_kind_declarations.sort_by_key(|declaration| declaration.points);
 
     scale_declarations
         .into_iter()
         .chain(four_of_a_kind_declarations.into_iter())
         .collect()
 }
-
