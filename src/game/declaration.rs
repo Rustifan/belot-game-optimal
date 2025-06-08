@@ -1,3 +1,5 @@
+use strum::IntoEnumIterator;
+
 use super::{
     deck::{Card, CardSuit, CardValue},
     player::Hand,
@@ -90,6 +92,15 @@ fn get_scales_by_suit(suit: &CardSuit, hand: &Hand) -> Vec<Declaration> {
     result_declarations
 }
 
+fn get_scale_declarations(hand: &Hand) -> Vec<Declaration> {
+    let mut result_declarations: Vec<Declaration> = vec![];
+    for suit in CardSuit::iter() {
+        let declarations = get_scales_by_suit(&suit, hand);
+        result_declarations.extend(declarations);
+    }
+    result_declarations
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -99,13 +110,11 @@ mod tests {
     struct ScaleTest {
         hand_cards: Vec<Card>,
         expected: Vec<Declaration>,
-        test_suit: CardSuit,
     }
     #[test]
     fn test_get_scales_by_suit() {
         let tests = vec![
             ScaleTest {
-                test_suit: CardSuit::Herz,
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Herz,
@@ -143,7 +152,6 @@ mod tests {
                 }],
             },
             ScaleTest {
-                test_suit: CardSuit::Herz,
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Herz,
@@ -189,7 +197,6 @@ mod tests {
                 }],
             },
             ScaleTest {
-                test_suit: CardSuit::Herz,
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Herz,
@@ -239,7 +246,6 @@ mod tests {
                 }],
             },
             ScaleTest {
-                test_suit: CardSuit::Leaf,
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Leaf,
@@ -312,7 +318,6 @@ mod tests {
                 ],
             },
             ScaleTest {
-                test_suit: CardSuit::Pumpkin,
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Pumpkin,
@@ -369,12 +374,11 @@ mod tests {
                         Card {
                             suit: CardSuit::Pumpkin,
                             value: CardValue::Queen,
-                        }
+                        },
                     ],
                 }],
             },
             ScaleTest {
-                test_suit: CardSuit::Acorn,
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Acorn,
@@ -408,7 +412,6 @@ mod tests {
                         suit: CardSuit::Acorn,
                         value: CardValue::King,
                     },
-
                 ],
                 expected: vec![Declaration {
                     points: 1000,
@@ -447,9 +450,8 @@ mod tests {
                         },
                     ],
                 }],
-            }, 
-           ScaleTest {
-                test_suit: CardSuit::Leaf,
+            },
+            ScaleTest {
                 hand_cards: vec![
                     Card {
                         suit: CardSuit::Leaf,
@@ -482,15 +484,91 @@ mod tests {
                     Card {
                         suit: CardSuit::Pumpkin,
                         value: CardValue::VIII,
-                    }
+                    },
                 ],
                 expected: vec![],
-            },  
+            },
+            ScaleTest {
+                hand_cards: vec![
+                    Card {
+                        suit: CardSuit::Pumpkin,
+                        value: CardValue::VII,
+                    },
+                    Card {
+                        suit: CardSuit::Herz,
+                        value: CardValue::VII,
+                    },
+                    Card {
+                        suit: CardSuit::Leaf,
+                        value: CardValue::X,
+                    },
+                    Card {
+                        suit: CardSuit::Leaf,
+                        value: CardValue::IX,
+                    },
+                    Card {
+                        suit: CardSuit::Leaf,
+                        value: CardValue::Queen,
+                    },
+                    Card {
+                        suit: CardSuit::Herz,
+                        value: CardValue::IX,
+                    },
+                    Card {
+                        suit: CardSuit::Leaf,
+                        value: CardValue::Jack,
+                    },
+                    Card {
+                        suit: CardSuit::Herz,
+                        value: CardValue::VIII,
+                    },
+                ],
+                expected: vec![
+                    Declaration {
+                        points: 50,
+                        cards: vec![
+                            Card {
+                                suit: CardSuit::Leaf,
+                                value: CardValue::IX,
+                            },
+                            Card {
+                                suit: CardSuit::Leaf,
+                                value: CardValue::X,
+                            },
+                            Card {
+                                suit: CardSuit::Leaf,
+                                value: CardValue::Jack,
+                            },
+                            Card {
+                                suit: CardSuit::Leaf,
+                                value: CardValue::Queen,
+                            },
+                        ],
+                    },
+                    Declaration {
+                        points: 20,
+                        cards: vec![
+                            Card {
+                                suit: CardSuit::Herz,
+                                value: CardValue::VII,
+                            },
+                            Card {
+                                suit: CardSuit::Herz,
+                                value: CardValue::VIII,
+                            },
+                            Card {
+                                suit: CardSuit::Herz,
+                                value: CardValue::IX,
+                            },
+                        ],
+                    },
+                ],
+            },
         ];
 
         for test in tests {
             let hand = Hand::new(test.hand_cards);
-            let result = get_scales_by_suit(&test.test_suit, &hand);
+            let result = get_scale_declarations(&hand);
             assert_eq!(result, test.expected);
         }
     }
