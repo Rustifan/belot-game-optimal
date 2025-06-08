@@ -1,6 +1,9 @@
 use crate::game::{declaration::get_possible_declarations, player::Hand};
 
-use super::{deck::{Card, CardSuit, CardValue}, declaration::Declaration};
+use super::{
+    deck::{Card, CardSuit, CardValue},
+    declaration::Declaration,
+};
 
 struct ScaleTest {
     hand_cards: Vec<Card>,
@@ -30,7 +33,7 @@ pub fn test_get_scales_by_suit() {
                 },
             ],
             expected: vec![Declaration {
-                points: 20, 
+                points: 20,
                 cards: vec![
                     Card {
                         suit: CardSuit::Herz,

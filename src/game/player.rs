@@ -1,6 +1,10 @@
+use strum::EnumCount;
 use strum_macros::{EnumCount, EnumIter};
 
-use super::deck::Card;
+use super::{
+    deck::{Card, CardValue},
+    round::Trump,
+};
 pub const NUMBER_OF_PLAYERS: usize = 4;
 
 #[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, EnumCount, EnumIter, Copy)]
@@ -30,6 +34,11 @@ impl Team {
             Self::A => Self::B,
             Self::B => Self::A,
         }
+    }
+
+    pub fn from_player_index(player_index: usize) -> Self {
+        let index = player_index % Team::COUNT;
+        Self::from_index(index)
     }
 }
 
@@ -69,6 +78,19 @@ impl Hand {
         let removed_card = self.hand.remove(card_position);
 
         Some(removed_card)
+    }
+
+    pub fn has_bela(&self, trump: &Trump) -> bool {
+        let trump_cards = self
+            .cards()
+            .iter()
+            .filter(|card| card.suit == trump.trump_suit);
+        trump_cards
+            .clone()
+            .any(|card| card.value == CardValue::Queen)
+            && trump_cards
+                .clone()
+                .any(|card| card.value == CardValue::King)
     }
 }
 

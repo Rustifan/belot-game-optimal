@@ -98,7 +98,6 @@ fn get_scales_by_suit(suit: &CardSuit, hand: &Hand) -> Vec<Declaration> {
         .filter(|card| card.suit == *suit)
         .collect::<Vec<_>>();
     cards.sort_by_key(|card| get_scale_index(&card.value));
-    println!("{cards:?}");
     let mut i = 0;
     while i < cards.len() {
         let mut card_val = get_scale_index(&cards[i].value);

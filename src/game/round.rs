@@ -37,6 +37,7 @@ pub trait RoundPlayer {
         player_index: usize,
         declaration: &Declaration,
     ) -> bool;
+    fn will_declare_bella(&self, round_state: &Round, player_index: usize) -> bool;
 }
 
 #[derive(Debug, Clone)]
@@ -122,14 +123,15 @@ impl TeamDeclarations {
 
 #[derive(Debug, Clone)]
 pub struct Round {
-    players: Players,
-    player_turn_index: usize,
-    current_trick: Trick,
-    trick_history: Vec<TrickHistoryItem>,
-    trump: Trump,
-    points: TeamPoints,
-    final_points: TeamPoints,
-    team_declarations: TeamDeclarations,
+    pub players: Players,
+    pub player_turn_index: usize,
+    pub current_trick: Trick,
+    pub trick_history: Vec<TrickHistoryItem>,
+    pub trump: Trump,
+    pub points: TeamPoints,
+    pub final_points: TeamPoints,
+    pub team_declarations: TeamDeclarations,
+    pub bela_declared: Option<Team>,
 }
 
 impl Round {
@@ -149,6 +151,7 @@ impl Round {
             points: TeamPoints::default(),
             final_points: TeamPoints::default(),
             team_declarations: TeamDeclarations::default(),
+            bela_declared: None,
         }
     }
 
@@ -159,6 +162,26 @@ impl Round {
         }
 
         result
+    }
+
+    fn is_stigl(&self) -> Option<Team> {
+        let trick_history = &self.trick_history;
+        let team_a_trick_count: usize = trick_history.into_iter().fold(0, |acc, curr| {
+            if curr.team_winner == Team::A {
+                acc + 1
+            } else {
+                acc
+            }
+        });
+
+        const ALL_TRICKS_COUNT: usize = 8;
+        const NONE_TRICKS_COUNT: usize = 0;
+
+        match team_a_trick_count {
+            ALL_TRICKS_COUNT => Some(Team::A),
+            NONE_TRICKS_COUNT => Some(Team::B),
+            _ => None,
+        }
     }
 
     fn get_trump(&mut self, round_player: &Box<dyn RoundPlayer>) -> Trump {
@@ -181,7 +204,6 @@ impl Round {
             player_index: last_player,
         }
     }
-
     fn play_trick(&mut self, round_player: &Box<dyn RoundPlayer>) -> TrickHistoryItem {
         while !self.current_trick.is_done() {
             let avaliable_cards = self
@@ -189,9 +211,18 @@ impl Round {
                 .get_playeble_cards(&self.players, &self.trump.trump_suit);
             let player_index = self.current_trick.get_player_index_turn();
             let played_card = round_player.play_card(&self, player_index, avaliable_cards);
-            let played_card = self.players.players[player_index]
+            let player = &mut self.players.players[player_index];
+            let has_bela = player.hand.has_bela(&self.trump);
+            let played_card = player
                 .remove_card(&played_card)
                 .expect("Player to have card that needs to be removed");
+            if has_bela
+                && played_card.is_bela_card(&self.trump)
+                && round_player.will_declare_bella(&self, player_index)
+            {
+                self.bela_declared = Some(Team::from_player_index(player_index))
+            }
+
             self.current_trick.play_card(played_card);
         }
         let trick_history_item = TrickHistoryItem::new(&self, self.current_trick.clone());
@@ -225,6 +256,16 @@ impl Round {
         for team in Team::iter() {
             self.final_points
                 .add_points(team.clone(), self.team_declarations.get_points_sum(&team));
+        }
+
+        if let Some(bela_team) = self.bela_declared {
+            const BELA_POINTS: usize = 20;
+            self.final_points.add_points(bela_team, BELA_POINTS);
+        }
+
+        if let Some(stigl_team) = self.is_stigl() {
+            const STIGL_POINTS: usize = 90;
+            self.final_points.add_points(stigl_team, STIGL_POINTS);
         }
 
         if self.has_trump_caller_failed() {

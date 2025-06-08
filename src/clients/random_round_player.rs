@@ -1,3 +1,5 @@
+use std::env::current_dir;
+
 use rand::random_range;
 
 use crate::{
@@ -38,6 +40,10 @@ impl RoundPlayer for RandomRoundPlayer {
         _player_index: usize,
         _declaration: &crate::game::declaration::Declaration,
     ) -> bool {
+        true
+    }
+
+    fn will_declare_bella(&self, _round_state: &Round, _player_index: usize) -> bool {
         true
     }
 }

@@ -1,4 +1,4 @@
-use super::player::{Hand, Players};
+use super::{player::{Hand, Players}, round::Trump};
 use rand::random_range;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumCount, EnumIter};
@@ -33,6 +33,14 @@ pub struct Card {
 impl Card {
     pub fn new(suit: CardSuit, value: CardValue) -> Self {
         Self { suit, value }
+    }
+
+    pub fn is_bela_card(&self, trump: &Trump)->bool {
+        if self.suit != trump.trump_suit {
+            return false;
+        }
+
+        self.value == CardValue::Queen || self.value == CardValue::King
     }
 }
 

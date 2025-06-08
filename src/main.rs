@@ -9,5 +9,6 @@ fn main() {
     let mut round = Round::new(0); 
     round.play_round(round_player);
 
-    println!("{round:#?}");
+    println!("points {:#?}", round.points);
+    println!("final_points {:#?}", round.final_points);
 }
