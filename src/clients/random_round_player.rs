@@ -1,5 +1,3 @@
-use std::env::current_dir;
-
 use rand::random_range;
 
 use crate::{

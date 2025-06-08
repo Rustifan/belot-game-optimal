@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::game::points::{better_than_normal, better_than_trump};
 
 use super::{
@@ -25,10 +23,6 @@ impl Trick {
 
     pub fn is_done(&self) -> bool {
         self.cards_on_table.len() >= NUMBER_OF_PLAYERS
-    }
-
-    pub fn cards(&self) -> &Vec<Card> {
-        &self.cards_on_table
     }
 
     fn trick_winner_by_color(
@@ -70,10 +64,6 @@ impl Trick {
 
     pub fn get_player_index_turn(&self) -> usize {
         self.player_index_turn
-    }
-
-    pub fn into_cards(self) -> Vec<Card> {
-        self.cards_on_table
     }
 
     pub fn get_playeble_cards(&self, players: &Players, trump_color: &CardSuit) -> Vec<Card> {

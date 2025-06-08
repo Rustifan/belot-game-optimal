@@ -3,10 +3,9 @@ use strum::{EnumCount, IntoEnumIterator};
 use super::{
     deck::{Card, CardSuit, Deck},
     declaration::{Declaration, get_possible_declarations},
-    player::{Hand, NUMBER_OF_PLAYERS, Player, Players, Team},
+    player::{NUMBER_OF_PLAYERS, Player, Players, Team},
     trick::Trick,
 };
-use std::{collections::HashMap, thread::current};
 
 #[derive(Debug, Default, Clone)]
 pub struct Trump {
@@ -42,8 +41,11 @@ pub trait RoundPlayer {
 
 #[derive(Debug, Clone)]
 pub struct TrickHistoryItem {
+    #[allow(dead_code)]
     trick: Trick,
+    #[allow(dead_code)]
     trump: Trump,
+    #[allow(dead_code)]
     player_index_winner: usize,
     team_winner: Team,
     points: usize,
@@ -155,14 +157,14 @@ impl Round {
         }
     }
 
-    pub fn get_cards_in_game(&self) -> Deck {
-        let mut result = Deck::empty();
-        for player in &self.players {
-            result.add_hand(player.get_hand().clone());
-        }
-
-        result
-    }
+    // pub fn get_cards_in_game(&self) -> Deck {
+    //     let mut result = Deck::empty();
+    //     for player in &self.players {
+    //         result.add_hand(player.get_hand().clone());
+    //     }
+    //
+    //     result
+    // }
 
     fn is_stigl(&self) -> Option<Team> {
         let trick_history = &self.trick_history;

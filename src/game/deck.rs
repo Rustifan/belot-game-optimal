@@ -1,4 +1,7 @@
-use super::{player::{Hand, Players}, round::Trump};
+use super::{
+    player:: Players,
+    round::Trump,
+};
 use rand::random_range;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumCount, EnumIter};
@@ -35,7 +38,7 @@ impl Card {
         Self { suit, value }
     }
 
-    pub fn is_bela_card(&self, trump: &Trump)->bool {
+    pub fn is_bela_card(&self, trump: &Trump) -> bool {
         if self.suit != trump.trump_suit {
             return false;
         }
@@ -60,12 +63,6 @@ impl Deck {
         }
 
         Self { deck }
-    }
-    
-    pub fn empty()->Deck {
-        return Deck {
-           deck: vec![] 
-        }
     }
 
     fn deal_card(&mut self) -> Option<Card> {
@@ -92,18 +89,4 @@ impl Deck {
             }
         }
     }
-
-    pub fn add_card(&mut self, card: Card){
-        self.deck.push(card);
-    }
-
-    pub fn add_cards(&mut self, cards: Vec<Card>){
-        let mut cards = cards;
-        self.deck.append(&mut cards);
-    }
-
-    pub fn add_hand(&mut self, hand: Hand){
-        self.add_cards(hand.into_cards());
-    }
-    
 }
