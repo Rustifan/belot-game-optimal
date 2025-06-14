@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod test_trick {
-    use std::collections::HashSet;
-
-    use crate::game::player::{self, Hand, Player, Players};
+    use crate::game::player::{Hand, Player, Players};
     use crate::game::{deck::Card, trick::Trick};
     use crate::game::{deck::CardSuit, deck::CardValue};
     fn get_playeble_card_test_fn(
