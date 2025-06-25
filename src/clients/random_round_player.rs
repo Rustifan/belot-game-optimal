@@ -3,7 +3,7 @@ use rand::random_range;
 use crate::{
     game::{
         deck::CardSuit,
-        round::{Round, RoundPlayer},
+        round::{Round, RoundPlayer, RoundUpdateEvent},
     },
     utils::random::get_random_suit,
 };
@@ -43,5 +43,18 @@ impl RoundPlayer for RandomRoundPlayer {
 
     fn will_declare_bella(&self, _round_state: &Round, _player_index: usize) -> bool {
         true
+    }
+
+    fn on_update(&self, round_state: &Round, round_event: RoundUpdateEvent) {
+        match round_event {
+            RoundUpdateEvent::CardPlayed { player_index, card } => {
+                let player = round_state
+                    .players
+                    .get(player_index)
+                    .expect("player_index should be valid index");
+
+                println!("Player {player:?} played {card:?}");
+            }
+        }
     }
 }

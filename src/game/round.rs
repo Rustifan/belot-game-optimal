@@ -21,6 +21,10 @@ impl Trump {
     }
 }
 
+pub enum RoundUpdateEvent{
+    CardPlayed {player_index: usize, card: Card}
+}
+
 pub trait RoundPlayer {
     fn try_call_trump(&self, round_state: &Round, player_index: usize) -> Option<CardSuit>;
     fn must_call_trump(&self, round_state: &Round, player_index: usize) -> CardSuit;
@@ -37,6 +41,7 @@ pub trait RoundPlayer {
         declaration: &Declaration,
     ) -> bool;
     fn will_declare_bella(&self, round_state: &Round, player_index: usize) -> bool;
+    fn on_update(&self, round_state: &Round, round_event: RoundUpdateEvent);
 }
 
 #[derive(Debug, Clone)]
@@ -225,7 +230,8 @@ impl Round {
                 self.bela_declared = Some(Team::from_player_index(player_index))
             }
 
-            self.current_trick.play_card(played_card);
+            self.current_trick.play_card(played_card.clone());
+            round_player.on_update(&self, RoundUpdateEvent::CardPlayed {card: played_card, player_index });
         }
         let trick_history_item = TrickHistoryItem::new(&self, self.current_trick.clone());
         self.trick_history.push(trick_history_item.clone());
