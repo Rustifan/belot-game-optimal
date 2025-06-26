@@ -21,8 +21,9 @@ impl Trump {
     }
 }
 
-pub enum RoundUpdateEvent{
-    CardPlayed {player_index: usize, card: Card}
+pub enum RoundUpdateEvent<'a> {
+    CardPlayed { player_index: usize, card: Card },
+    DeclarationsCalled(&'a Vec<DeclaratonWithPlayerInfo>),
 }
 
 pub trait RoundPlayer {
@@ -105,14 +106,24 @@ impl TeamPoints {
 
 #[derive(Debug, Clone, Default)]
 pub struct TeamDeclarations {
-    declarations: [Vec<Declaration>; Team::COUNT],
+    declarations: [Vec<DeclaratonWithPlayerInfo>; Team::COUNT],
+}
+
+#[derive(Debug, Clone)]
+pub struct DeclaratonWithPlayerInfo {
+    pub declaration: Declaration,
+    pub player_index: usize,
 }
 
 impl TeamDeclarations {
     pub fn add_declaration(&mut self, player: &Player, declaration: Declaration) {
         let player_team = player.get_team();
         let team_index = player_team.to_index();
-        self.declarations[team_index].push(declaration);
+        let declaraiton_with_player_info = DeclaratonWithPlayerInfo {
+            declaration,
+            player_index: player.get_index(),
+        };
+        self.declarations[team_index].push(declaraiton_with_player_info);
     }
 
     pub fn delete_declarations_for_team(&mut self, team: &Team) {
@@ -124,7 +135,9 @@ impl TeamDeclarations {
         let index = team.to_index();
         let declarations = &self.declarations[index];
 
-        declarations.iter().fold(0, |acc, curr| curr.points + acc)
+        declarations
+            .iter()
+            .fold(0, |acc, curr| curr.declaration.points + acc)
     }
 }
 
@@ -231,7 +244,13 @@ impl Round {
             }
 
             self.current_trick.play_card(played_card.clone());
-            round_player.on_update(&self, RoundUpdateEvent::CardPlayed {card: played_card, player_index });
+            round_player.on_update(
+                &self,
+                RoundUpdateEvent::CardPlayed {
+                    card: played_card,
+                    player_index,
+                },
+            );
         }
         let trick_history_item = TrickHistoryItem::new(&self, self.current_trick.clone());
         self.trick_history.push(trick_history_item.clone());
@@ -241,9 +260,23 @@ impl Round {
         trick_history_item
     }
 
+    fn try_publish_declaration_event(&self, round_player: &Box<dyn RoundPlayer>) {
+        for team_declaration in self
+            .team_declarations
+            .declarations
+            .iter()
+            .filter(|vec| vec.len() > 0)
+        {
+            let round_event = RoundUpdateEvent::DeclarationsCalled(&team_declaration);
+            round_player.on_update(self, round_event);
+        }
+    }
+
     pub fn play_round(&mut self, round_player: Box<dyn RoundPlayer>) {
         self.trump = self.get_trump(&round_player);
+
         self.team_declarations = self.get_declarations(&round_player);
+        self.try_publish_declaration_event(&round_player);
 
         while self.players.have_cards() {
             let played_trick = self.play_trick(&round_player);

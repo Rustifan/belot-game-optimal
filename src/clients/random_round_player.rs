@@ -53,7 +53,10 @@ impl RoundPlayer for RandomRoundPlayer {
                     .get(player_index)
                     .expect("player_index should be valid index");
 
-                println!("Player {player:?} played {card:?}");
+                println!("Player {player:?} played {card:#?}");
+            },
+            RoundUpdateEvent::DeclarationsCalled(declarations) => {
+                println!("Declarations: {declarations:#?}");
             }
         }
     }
