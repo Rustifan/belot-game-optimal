@@ -155,10 +155,10 @@ pub struct Round {
 }
 
 impl Round {
-    pub fn new(first_player_index: usize) -> Self {
+    pub fn new(first_player_index: usize, player_names: [&'static str; NUMBER_OF_PLAYERS]) -> Self {
         let player_turn_index = 0;
         let mut deck = Deck::new();
-        let mut players = Players::new();
+        let mut players = Players::new(player_names);
         deck.shuffle_deal(&mut players);
         players.sort_hands();
 
@@ -173,6 +173,10 @@ impl Round {
             team_declarations: TeamDeclarations::default(),
             bela_declared: None,
         }
+    }
+
+    pub fn set_players(&mut self, players: Players) {
+        self.players = players;
     }
 
     // pub fn get_cards_in_game(&self) -> Deck {

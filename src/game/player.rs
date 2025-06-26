@@ -146,11 +146,12 @@ pub struct Players {
 }
 
 impl Players {
-    pub fn new() -> Self {
+    pub fn new(player_names: [&'static str; NUMBER_OF_PLAYERS]) -> Self {
         let mut players = Players::default();
         players.set_turn(0);
         for (index, player) in players.players.iter_mut().enumerate() {
             player.index = index;
+            player.name = player_names[index].to_owned()
         }
 
         players
