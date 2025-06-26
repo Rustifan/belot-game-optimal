@@ -1,10 +1,7 @@
-use super::{
-    player:: Players,
-    round::Trump,
-};
+use super::{player::Players, round::Trump};
 use rand::random_range;
 use strum::IntoEnumIterator;
-use strum_macros::{EnumCount, EnumIter};
+use strum_macros::{EnumCount, EnumIter, IntoStaticStr};
 
 #[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub enum CardValue {
@@ -18,7 +15,9 @@ pub enum CardValue {
     Kec,
 }
 
-#[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Default, Hash)]
+#[derive(
+    Debug, IntoStaticStr, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Default, Hash,
+)]
 pub enum CardSuit {
     #[default]
     Leaf,

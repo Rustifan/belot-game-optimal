@@ -22,7 +22,14 @@ impl Trump {
 }
 
 pub enum RoundUpdateEvent<'a> {
-    CardPlayed { player_index: usize, card: Card },
+    CardPlayed {
+        player_index: usize,
+        card: Card,
+    },
+    TrumpCallEvent {
+        player_index: usize,
+        trump: Option<&'a Trump>,
+    },
     DeclarationsCalled(&'a Vec<DeclaratonWithPlayerInfo>),
 }
 
@@ -213,20 +220,43 @@ impl Round {
         for i in 0..last_player_index {
             let player_index = (i + self.player_turn_index) % NUMBER_OF_PLAYERS;
             if let Some(suit) = round_player.try_call_trump(self, player_index) {
-                return Trump {
+                let trump = Trump {
                     trump_suit: suit,
                     player_index,
                 };
+                let trump_event = RoundUpdateEvent::TrumpCallEvent {
+                    player_index,
+                    trump: Some(&trump),
+                };
+                round_player.on_update(&self, trump_event);
+
+                return trump;
             }
+
+            round_player.on_update(
+                &self,
+                RoundUpdateEvent::TrumpCallEvent {
+                    player_index,
+                    trump: None,
+                },
+            );
         }
 
         let last_player = (last_player_index + self.player_turn_index) % NUMBER_OF_PLAYERS;
         let suit = round_player.must_call_trump(self, last_player);
 
-        Trump {
+        let trump = Trump {
             trump_suit: suit,
             player_index: last_player,
-        }
+        };
+
+        let trump_event = RoundUpdateEvent::TrumpCallEvent {
+            player_index: last_player,
+            trump: Some(&trump),
+        };
+        round_player.on_update(&self, trump_event);
+
+        trump
     }
     fn play_trick(&mut self, round_player: &Box<dyn RoundPlayer>) -> TrickHistoryItem {
         while !self.current_trick.is_done() {

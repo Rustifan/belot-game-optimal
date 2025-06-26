@@ -64,6 +64,21 @@ impl RoundPlayer for RandomRoundPlayer {
             RoundUpdateEvent::DeclarationsCalled(declarations) => {
                 println!("Declarations: {declarations:#?}");
             }
+            RoundUpdateEvent::TrumpCallEvent {
+                player_index,
+                trump,
+            } => {
+                let player = round_state
+                    .players
+                    .get(player_index)
+                    .expect("player_index should be valid index");
+                let color = match trump {
+                    Some(trump) => trump.trump_suit.clone().into(),
+                    None => "Dalje"
+                };
+
+                println!("Player {} zove {color}", player.name);
+            }
         }
         wait_for_std_input();
     }
