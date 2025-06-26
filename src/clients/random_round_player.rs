@@ -1,3 +1,5 @@
+use std::io;
+
 use rand::random_range;
 
 use crate::{
@@ -10,6 +12,11 @@ use crate::{
 
 #[derive(Debug)]
 pub struct RandomRoundPlayer;
+
+fn wait_for_std_input() {
+    let mut buffer = String::new();
+    io::stdin().read_line(&mut buffer).unwrap();
+}
 
 impl RoundPlayer for RandomRoundPlayer {
     fn try_call_trump(&self, _round_state: &Round, _player_index: usize) -> Option<CardSuit> {
@@ -44,7 +51,6 @@ impl RoundPlayer for RandomRoundPlayer {
     fn will_declare_bella(&self, _round_state: &Round, _player_index: usize) -> bool {
         true
     }
-
     fn on_update(&self, round_state: &Round, round_event: RoundUpdateEvent) {
         match round_event {
             RoundUpdateEvent::CardPlayed { player_index, card } => {
@@ -53,11 +59,12 @@ impl RoundPlayer for RandomRoundPlayer {
                     .get(player_index)
                     .expect("player_index should be valid index");
 
-                println!("Player {player:?} played {card:#?}");
-            },
+                println!("Player {} played {card:#?}", player.name);
+            }
             RoundUpdateEvent::DeclarationsCalled(declarations) => {
                 println!("Declarations: {declarations:#?}");
             }
         }
+        wait_for_std_input();
     }
 }
