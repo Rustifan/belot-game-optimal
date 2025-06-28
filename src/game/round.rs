@@ -31,6 +31,10 @@ pub enum RoundUpdateEvent<'a> {
         trump: Option<&'a Trump>,
     },
     DeclarationsCalled(&'a Vec<DeclaratonWithPlayerInfo>),
+    BelaDeclared {
+        player_index: usize,
+    },
+    TrickDone(TrickHistoryItem),
 }
 
 pub trait RoundPlayer {
@@ -58,7 +62,6 @@ pub struct TrickHistoryItem {
     trick: Trick,
     #[allow(dead_code)]
     trump: Trump,
-    #[allow(dead_code)]
     player_index_winner: usize,
     team_winner: Team,
     points: usize,
@@ -81,6 +84,18 @@ impl TrickHistoryItem {
             team_winner,
             points,
         }
+    }
+
+    pub fn get_winner_index(&self) -> usize {
+        self.player_index_winner
+    }
+
+    pub fn get_winner_team(&self) -> &Team {
+        &self.team_winner
+    }
+
+    pub fn get_points(&self) -> usize {
+        self.points
     }
 }
 
@@ -108,6 +123,10 @@ impl TeamPoints {
         let points_sum = self.points.iter().fold(0, |acc, curr| acc + *curr);
         self.points[team_index] = points_sum;
         self.points[other_team_index] = 0;
+    }
+
+    pub fn get_points(&self, team: Team) -> usize {
+        self.points[team.to_index()]
     }
 }
 
@@ -186,6 +205,11 @@ impl Round {
         self.players = players;
     }
 
+    pub fn get_player_by_index(&self, player_index: usize) -> &Player {
+        self.players
+            .get(player_index)
+            .expect("player_index should be valid index")
+    }
     // pub fn get_cards_in_game(&self) -> Deck {
     //     let mut result = Deck::empty();
     //     for player in &self.players {
@@ -220,17 +244,10 @@ impl Round {
         for i in 0..last_player_index {
             let player_index = (i + self.player_turn_index) % NUMBER_OF_PLAYERS;
             if let Some(suit) = round_player.try_call_trump(self, player_index) {
-                let trump = Trump {
+                return Trump {
                     trump_suit: suit,
                     player_index,
                 };
-                let trump_event = RoundUpdateEvent::TrumpCallEvent {
-                    player_index,
-                    trump: Some(&trump),
-                };
-                round_player.on_update(&self, trump_event);
-
-                return trump;
             }
 
             round_player.on_update(
@@ -245,19 +262,12 @@ impl Round {
         let last_player = (last_player_index + self.player_turn_index) % NUMBER_OF_PLAYERS;
         let suit = round_player.must_call_trump(self, last_player);
 
-        let trump = Trump {
+        Trump {
             trump_suit: suit,
             player_index: last_player,
-        };
-
-        let trump_event = RoundUpdateEvent::TrumpCallEvent {
-            player_index: last_player,
-            trump: Some(&trump),
-        };
-        round_player.on_update(&self, trump_event);
-
-        trump
+        }
     }
+
     fn play_trick(&mut self, round_player: &Box<dyn RoundPlayer>) -> TrickHistoryItem {
         while !self.current_trick.is_done() {
             let avaliable_cards = self
@@ -274,7 +284,9 @@ impl Round {
                 && played_card.is_bela_card(&self.trump)
                 && round_player.will_declare_bella(&self, player_index)
             {
-                self.bela_declared = Some(Team::from_player_index(player_index))
+                self.bela_declared = Some(Team::from_player_index(player_index));
+                let bela_event = RoundUpdateEvent::BelaDeclared { player_index };
+                round_player.on_update(&self, bela_event);
             }
 
             self.current_trick.play_card(played_card.clone());
@@ -308,6 +320,11 @@ impl Round {
 
     pub fn play_round(&mut self, round_player: Box<dyn RoundPlayer>) {
         self.trump = self.get_trump(&round_player);
+        let trump_event = RoundUpdateEvent::TrumpCallEvent {
+            player_index: self.trump.player_index,
+            trump: Some(&self.trump),
+        };
+        round_player.on_update(&self, trump_event);
 
         self.team_declarations = self.get_declarations(&round_player);
         self.try_publish_declaration_event(&round_player);
@@ -316,6 +333,7 @@ impl Round {
             let played_trick = self.play_trick(&round_player);
             self.points
                 .add_points(played_trick.team_winner, played_trick.points);
+            round_player.on_update(&self, RoundUpdateEvent::TrickDone(played_trick));
         }
         let last_winner = &self
             .trick_history

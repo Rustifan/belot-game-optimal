@@ -1,5 +1,5 @@
 use strum::EnumCount;
-use strum_macros::{EnumCount, EnumIter};
+use strum_macros::{EnumCount, EnumIter, IntoStaticStr};
 
 use super::{
     deck::{Card, CardValue},
@@ -7,7 +7,7 @@ use super::{
 };
 pub const NUMBER_OF_PLAYERS: usize = 4;
 
-#[derive(Clone, Debug, Hash, PartialEq, PartialOrd, Eq, EnumCount, EnumIter, Copy)]
+#[derive(Clone, IntoStaticStr, Debug, Hash, PartialEq, PartialOrd, Eq, EnumCount, EnumIter, Copy)]
 pub enum Team {
     A,
     B,
