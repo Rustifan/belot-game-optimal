@@ -1,4 +1,4 @@
-use crate::game::round::{Round, RoundPlayer, RoundUpdateEvent};
+use crate::game::{round::{Round, RoundUpdateEvent}, round_player::RoundPlayer};
 
 pub struct CliRoundPlayer;
 

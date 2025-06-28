@@ -3,7 +3,7 @@ use rand::random_range;
 use crate::{
     game::{
         deck::CardSuit,
-        round::{Round, RoundPlayer, RoundUpdateEvent},
+        round::{Round, RoundUpdateEvent}, round_player::RoundPlayer,
     },
     utils::{console::{clear_console, print_current_points, wait_for_std_input}, random::get_random_suit},
 };
