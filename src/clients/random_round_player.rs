@@ -1,7 +1,4 @@
-use std::{
-    fmt::format,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use rand::random_range;
 

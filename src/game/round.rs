@@ -201,10 +201,6 @@ impl Round {
         }
     }
 
-    pub fn set_players(&mut self, players: Players) {
-        self.players = players;
-    }
-
     pub fn get_player_by_index(&self, player_index: usize) -> &Player {
         self.players
             .get(player_index)
