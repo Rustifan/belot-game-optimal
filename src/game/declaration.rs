@@ -1,10 +1,11 @@
+use crate::game::player::Player;
 use std::collections::HashMap;
 
-use strum::IntoEnumIterator;
+use strum::{EnumCount, IntoEnumIterator};
 
 use super::{
     deck::{Card, CardSuit, CardValue},
-    player::Hand,
+    player::{Hand, Team},
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -153,4 +154,41 @@ pub fn get_possible_declarations(hand: &Hand) -> Vec<Declaration> {
         .into_iter()
         .chain(four_of_a_kind_declarations.into_iter())
         .collect()
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct TeamDeclarations {
+    pub declarations: [Vec<DeclaratonWithPlayerInfo>; Team::COUNT],
+}
+
+#[derive(Debug, Clone)]
+pub struct DeclaratonWithPlayerInfo {
+    pub declaration: Declaration,
+    pub player_index: usize,
+}
+
+impl TeamDeclarations {
+    pub fn add_declaration(&mut self, player: &Player, declaration: Declaration) {
+        let player_team = player.get_team();
+        let team_index = player_team.to_index();
+        let declaraiton_with_player_info = DeclaratonWithPlayerInfo {
+            declaration,
+            player_index: player.get_index(),
+        };
+        self.declarations[team_index].push(declaraiton_with_player_info);
+    }
+
+    pub fn delete_declarations_for_team(&mut self, team: &Team) {
+        let team_index = team.to_index();
+        self.declarations[team_index].clear();
+    }
+
+    pub fn get_points_sum(&self, team: &Team) -> usize {
+        let index = team.to_index();
+        let declarations = &self.declarations[index];
+
+        declarations
+            .iter()
+            .fold(0, |acc, curr| curr.declaration.points + acc)
+    }
 }

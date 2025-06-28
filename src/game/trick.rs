@@ -2,9 +2,9 @@ use crate::game::points::{better_than_normal, better_than_trump};
 
 use super::{
     deck::{Card, CardSuit},
-    player::{NUMBER_OF_PLAYERS, Players},
+    player::{Players, Team, NUMBER_OF_PLAYERS},
     points::{get_best_normal, get_best_trump, get_normal_points, get_trump_points},
-    round::Trump,
+    round::{Round, Trump},
 };
 
 #[derive(Debug, Clone)]
@@ -171,5 +171,48 @@ impl Trick {
                 acc + get_normal_points(&curr.value)
             }
         })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TrickHistoryItem {
+    #[allow(dead_code)]
+    pub trick: Trick,
+    #[allow(dead_code)]
+    pub trump: Trump,
+    pub player_index_winner: usize,
+    pub team_winner: Team,
+    pub points: usize,
+}
+
+impl TrickHistoryItem {
+    pub fn new(round_state: &Round, trick: Trick) -> Self {
+        let player_index_winner = trick
+            .get_trick_winner(&round_state.trump.trump_suit)
+            .expect("To trick is done we always have a trick winner");
+        let player_winner = &round_state.players.players[player_index_winner];
+        let team_winner = player_winner.get_team();
+        let trump = round_state.trump.clone();
+        let points = trick.get_points(&round_state.trump);
+
+        Self {
+            trick,
+            trump,
+            player_index_winner,
+            team_winner,
+            points,
+        }
+    }
+
+    pub fn get_winner_index(&self) -> usize {
+        self.player_index_winner
+    }
+
+    pub fn get_winner_team(&self) -> &Team {
+        &self.team_winner
+    }
+
+    pub fn get_points(&self) -> usize {
+        self.points
     }
 }

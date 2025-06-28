@@ -1,11 +1,12 @@
+use crate::game::declaration::DeclaratonWithPlayerInfo;
 use crate::game::round_player::RoundPlayer;
 use strum::{EnumCount, IntoEnumIterator};
 
 use super::{
     deck::{Card, CardSuit, Deck},
-    declaration::{Declaration, get_possible_declarations},
+    declaration::{Declaration, TeamDeclarations, get_possible_declarations},
     player::{NUMBER_OF_PLAYERS, Player, Players, Team},
-    trick::Trick,
+    trick::{Trick, TrickHistoryItem},
 };
 
 #[derive(Debug, Default, Clone)]
@@ -38,50 +39,6 @@ pub enum RoundUpdateEvent<'a> {
     TrickDone(TrickHistoryItem),
 }
 
-
-#[derive(Debug, Clone)]
-pub struct TrickHistoryItem {
-    #[allow(dead_code)]
-    trick: Trick,
-    #[allow(dead_code)]
-    trump: Trump,
-    player_index_winner: usize,
-    team_winner: Team,
-    points: usize,
-}
-
-impl TrickHistoryItem {
-    fn new(round_state: &Round, trick: Trick) -> Self {
-        let player_index_winner = trick
-            .get_trick_winner(&round_state.trump.trump_suit)
-            .expect("To trick is done we always have a trick winner");
-        let player_winner = &round_state.players.players[player_index_winner];
-        let team_winner = player_winner.get_team();
-        let trump = round_state.trump.clone();
-        let points = trick.get_points(&round_state.trump);
-
-        Self {
-            trick,
-            trump,
-            player_index_winner,
-            team_winner,
-            points,
-        }
-    }
-
-    pub fn get_winner_index(&self) -> usize {
-        self.player_index_winner
-    }
-
-    pub fn get_winner_team(&self) -> &Team {
-        &self.team_winner
-    }
-
-    pub fn get_points(&self) -> usize {
-        self.points
-    }
-}
-
 #[derive(Debug, Clone, Default)]
 pub struct TeamPoints {
     points: [usize; Team::COUNT],
@@ -110,43 +67,6 @@ impl TeamPoints {
 
     pub fn get_points(&self, team: Team) -> usize {
         self.points[team.to_index()]
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct TeamDeclarations {
-    declarations: [Vec<DeclaratonWithPlayerInfo>; Team::COUNT],
-}
-
-#[derive(Debug, Clone)]
-pub struct DeclaratonWithPlayerInfo {
-    pub declaration: Declaration,
-    pub player_index: usize,
-}
-
-impl TeamDeclarations {
-    pub fn add_declaration(&mut self, player: &Player, declaration: Declaration) {
-        let player_team = player.get_team();
-        let team_index = player_team.to_index();
-        let declaraiton_with_player_info = DeclaratonWithPlayerInfo {
-            declaration,
-            player_index: player.get_index(),
-        };
-        self.declarations[team_index].push(declaraiton_with_player_info);
-    }
-
-    pub fn delete_declarations_for_team(&mut self, team: &Team) {
-        let team_index = team.to_index();
-        self.declarations[team_index].clear();
-    }
-
-    pub fn get_points_sum(&self, team: &Team) -> usize {
-        let index = team.to_index();
-        let declarations = &self.declarations[index];
-
-        declarations
-            .iter()
-            .fold(0, |acc, curr| curr.declaration.points + acc)
     }
 }
 
@@ -189,14 +109,6 @@ impl Round {
             .get(player_index)
             .expect("player_index should be valid index")
     }
-    // pub fn get_cards_in_game(&self) -> Deck {
-    //     let mut result = Deck::empty();
-    //     for player in &self.players {
-    //         result.add_hand(player.get_hand().clone());
-    //     }
-    //
-    //     result
-    // }
 
     fn is_stigl(&self) -> Option<Team> {
         let trick_history = &self.trick_history;
