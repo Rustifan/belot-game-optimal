@@ -222,10 +222,10 @@ impl Round {
         !self.final_points.has_bigger_points(team)
     }
 
-    pub fn increment_player_index(&mut self) {
-        self.player_turn_index += 1;
-        self.player_turn_index %= NUMBER_OF_PLAYERS;
-    }
+    // pub fn increment_player_index(&mut self) {
+    //     self.player_turn_index += 1;
+    //     self.player_turn_index %= NUMBER_OF_PLAYERS;
+    // }
 
     fn get_declarations(&self, round_player: &Box<dyn RoundPlayer>) -> TeamDeclarations {
         let mut best_declaration_result: Option<Declaration> = None;

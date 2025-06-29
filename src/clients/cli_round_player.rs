@@ -1,4 +1,4 @@
-use crate::game::deck::{Card, CardSuit, CardValue};
+use crate::game::deck::{Card, CardSuit};
 use crate::game::player::Player;
 use crate::game::round::{Round, RoundUpdateEvent};
 use crate::game::round_player::RoundPlayer;
@@ -57,7 +57,9 @@ impl CliRoundPlayer {
                     if available_cards.contains(selected_card) {
                         return selected_card.clone();
                     } else {
-                        println!("You cannot play that card. Please select one of the available cards.");
+                        println!(
+                            "You cannot play that card. Please select one of the available cards."
+                        );
                     }
                 }
                 _ => {
@@ -94,7 +96,13 @@ impl RoundPlayer for CliRoundPlayer {
                 clear_console();
                 print_current_points(round_state);
             }
-            RoundUpdateEvent::TrumpCallEvent { player_index, trump } => {
+            RoundUpdateEvent::TrumpCallEvent {
+                player_index,
+                trump,
+            } => {
+                if player_index == round_state.player_turn_index {
+                    clear_console();
+                }
                 let player = round_state.get_player_by_index(player_index);
                 let color: &str = match trump {
                     Some(trump) => trump.trump_suit.clone().into(),
@@ -132,12 +140,12 @@ impl RoundPlayer for CliRoundPlayer {
         if self.is_human_player(player_index) {
             let player = round_state.get_player_by_index(player_index);
             let mut hand_clone = player.hand.cards().clone();
-            hand_clone.shuffle(&mut rand::thread_rng());
+            hand_clone.shuffle(&mut rand::rng());
 
             let (hidden_cards, shown_cards) = hand_clone.split_at(2);
 
             let mut sorted_shown_cards = shown_cards.to_vec();
-            sorted_shown_cards.sort();
+            sorted_shown_cards.sort_by_key(|card| (card.suit.clone(), card.value.clone()));
 
             println!("Your cards (two are hidden):");
             for (i, card) in sorted_shown_cards.iter().enumerate() {
@@ -147,7 +155,9 @@ impl RoundPlayer for CliRoundPlayer {
             }
 
             loop {
-                println!("Please choose a trump suit (Leaf, Pumpkin, Herz, Acorn), or type 'Dalje' to pass:");
+                println!(
+                    "Please choose a trump suit (Leaf, Pumpkin, Herz, Acorn), or type 'Dalje' to pass:"
+                );
                 let mut input = String::new();
                 io::stdin()
                     .read_line(&mut input)
