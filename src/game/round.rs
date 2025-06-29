@@ -145,7 +145,7 @@ impl Round {
         }
         let trick_history_item = TrickHistoryItem::new(&self, self.current_trick.clone());
         self.trick_history.push(trick_history_item.clone());
-        self.increment_player_index();
+        self.player_turn_index = trick_history_item.player_index_winner;
         self.current_trick = Trick::new(self.player_turn_index);
 
         trick_history_item

@@ -1,10 +1,12 @@
-use crate::game::trump::Trump;
 use super::player::Players;
+use crate::game::trump::Trump;
 use rand::random_range;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumCount, EnumIter, IntoStaticStr};
 
-#[derive(Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(
+    Debug, EnumIter, Clone, EnumCount, PartialEq, PartialOrd, Eq, Ord, Hash, IntoStaticStr,
+)]
 pub enum CardValue {
     VII,
     VIII,
@@ -27,7 +29,7 @@ pub enum CardSuit {
     Acorn,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Card {
     pub value: CardValue,
     pub suit: CardSuit,
@@ -77,7 +79,7 @@ impl Deck {
         let random_index = random_range(0..len);
         let card = self.deck[random_index].clone();
         self.deck[random_index] = self.deck.last().unwrap().clone();
-        self.deck.pop().expect("shpuld be at least 1 card in deck");
+        self.deck.pop().expect("should be at least 1 card in deck");
         Some(card)
     }
 
@@ -90,3 +92,4 @@ impl Deck {
         }
     }
 }
+
