@@ -1,7 +1,6 @@
 use strum::EnumCount;
 
-use super::{deck::CardSuit, player::Team};
-
+use super::{deck::CardSuit, team::Team};
 
 #[derive(Debug, Default, Clone)]
 pub struct Trump {

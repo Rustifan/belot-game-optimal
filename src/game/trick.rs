@@ -1,9 +1,10 @@
 use crate::game::trump::Trump;
 use crate::game::points::{better_than_normal, better_than_trump};
 
+use super::team::Team;
 use super::{
     deck::{Card, CardSuit},
-    player::{NUMBER_OF_PLAYERS, Players, Team},
+    player::{NUMBER_OF_PLAYERS, Players},
     points::{get_best_normal, get_best_trump, get_normal_points, get_trump_points},
     round::Round,
 };

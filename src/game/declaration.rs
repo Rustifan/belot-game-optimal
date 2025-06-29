@@ -5,7 +5,7 @@ use strum::{EnumCount, IntoEnumIterator};
 
 use super::{
     deck::{Card, CardSuit, CardValue},
-    player::{Hand, Team},
+    player::Hand, team::Team,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]

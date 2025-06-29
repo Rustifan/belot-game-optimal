@@ -1,7 +1,5 @@
-use std::io::{self, stdout, Write};
-
-use crate::game::{player::Team, round::Round};
-
+use std::io::{self, Write, stdout};
+use crate::game::{round::Round, team::Team};
 
 pub fn wait_for_std_input() {
     let mut buffer = String::new();

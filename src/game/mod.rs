@@ -6,6 +6,7 @@ pub mod points;
 pub mod declaration;
 pub mod round_player;
 pub mod trump;
+pub mod team;
 
 #[cfg(test)]
 mod test_declaration;

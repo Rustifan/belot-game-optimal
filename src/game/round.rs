@@ -1,11 +1,13 @@
+use strum::{EnumCount, IntoEnumIterator};
+
+use crate::game::team::Team;
 use crate::game::declaration::DeclaratonWithPlayerInfo;
 use crate::game::round_player::RoundPlayer;
-use strum::{EnumCount, IntoEnumIterator};
 
 use super::{
     deck::{Card, Deck},
     declaration::{get_possible_declarations, Declaration, TeamDeclarations},
-    player::{Player, Players, Team, NUMBER_OF_PLAYERS},
+    player::{Player, Players, NUMBER_OF_PLAYERS},
     trick::{Trick, TrickHistoryItem}, trump::Trump 
 };
 
