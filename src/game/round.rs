@@ -3,25 +3,11 @@ use crate::game::round_player::RoundPlayer;
 use strum::{EnumCount, IntoEnumIterator};
 
 use super::{
-    deck::{Card, CardSuit, Deck},
-    declaration::{Declaration, TeamDeclarations, get_possible_declarations},
-    player::{NUMBER_OF_PLAYERS, Player, Players, Team},
-    trick::{Trick, TrickHistoryItem},
+    deck::{Card, Deck},
+    declaration::{get_possible_declarations, Declaration, TeamDeclarations},
+    player::{Player, Players, Team, NUMBER_OF_PLAYERS},
+    trick::{Trick, TrickHistoryItem}, trump::Trump 
 };
-
-#[derive(Debug, Default, Clone)]
-pub struct Trump {
-    pub player_index: usize,
-    pub trump_suit: CardSuit,
-}
-
-impl Trump {
-    fn get_caller_team(&self) -> Team {
-        let team_index = self.player_index % Team::COUNT;
-
-        Team::from_index(team_index)
-    }
-}
 
 pub enum RoundUpdateEvent<'a> {
     CardPlayed {

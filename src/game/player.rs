@@ -1,9 +1,9 @@
+use crate::game::trump::Trump;
 use strum::EnumCount;
 use strum_macros::{EnumCount, EnumIter, IntoStaticStr};
 
 use super::{
     deck::{Card, CardValue},
-    round::Trump,
 };
 pub const NUMBER_OF_PLAYERS: usize = 4;
 

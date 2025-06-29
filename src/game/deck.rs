@@ -1,4 +1,5 @@
-use super::{player::Players, round::Trump};
+use crate::game::trump::Trump;
+use super::player::Players;
 use rand::random_range;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumCount, EnumIter, IntoStaticStr};
